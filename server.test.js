@@ -1,5 +1,7 @@
 process.env.NODE_ENV = 'test';
 process.env.SESSION_SECRET = 'test-secret';
+process.env.ADMIN_USER = 'admin';
+process.env.ADMIN_PASS = 'admin123';
 
 const request = require('supertest');
 const { app, db } = require('./server');
@@ -14,12 +16,13 @@ describe('Encuesta OTP App', () => {
     // Limpiar tablas antes de cada test
     db.prepare('DELETE FROM otp_codes').run();
     db.prepare('DELETE FROM responses').run();
+    db.prepare('DELETE FROM socios').run();
   });
 
   it('GET / deberia cargar el formulario de login', async () => {
     const res = await request(app).get('/');
     expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('<form method="POST" action="/send-otp">');
+    expect(res.text).toContain('<form method="POST" action="/send-otp"');
   });
 
   it('POST /send-otp sin email redirige a / con error', async () => {
@@ -28,8 +31,9 @@ describe('Encuesta OTP App', () => {
     expect(res.headers.location).toContain('/?error=');
   });
 
-  it('POST /send-otp con email valido redirige a /verify y guarda OTP', async () => {
+  it('POST /send-otp con email valido de socio redirige a /verify y guarda OTP', async () => {
     const email = 'test@example.com';
+    db.prepare('INSERT INTO socios (email) VALUES (?)').run(email);
     const res = await request(app)
       .post('/send-otp')
       .send({ email });
@@ -44,15 +48,17 @@ describe('Encuesta OTP App', () => {
     expect(otpRecord.used).toBe(0);
   });
 
-  it('GET /admin/results sin key da 403', async () => {
-    const res = await request(app).get('/admin/results');
-    expect(res.statusCode).toBe(403);
-    expect(res.text).toBe('No autorizado');
+  it('GET /admin/dashboard sin login redirige a login', async () => {
+    const res = await request(app).get('/admin/dashboard');
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe('/admin/login');
   });
 
-  it('GET /admin/results con key valida muestra resultados', async () => {
-    const res = await request(app).get('/admin/results?key=tu-clave-secreta-admin');
-    expect(res.statusCode).toBe(200);
-    expect(res.text).toContain('Resultados de la encuesta');
+  it('POST /admin/login con key valida inicia sesion y redirige', async () => {
+    const res = await request(app)
+      .post('/admin/login')
+      .send({ username: 'admin', password: 'admin123' });
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe('/admin/dashboard');
   });
 });

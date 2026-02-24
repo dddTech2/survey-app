@@ -79,12 +79,12 @@ app.get("/", (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Club Votaciones - Acceso</title>
+      <title>Votaciones</title>
       <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-50 min-h-screen flex items-center justify-center font-sans text-slate-800">
       <div class="bg-white border border-slate-200 rounded-xl p-8 w-full max-w-md shadow-sm">
-        <h1 class="text-2xl font-bold mb-2 text-center text-indigo-600">Votaciones del Club</h1>
+        <h1 class="text-2xl font-bold mb-2 text-center text-indigo-600">Votaciones</h1>
         <p class="text-slate-500 text-center mb-6 text-sm">Ingresa tu correo de registrado para recibir acceso</p>
         ${req.query.error ? '<div class="bg-rose-50 border border-rose-200 text-rose-600 p-3 rounded-lg mb-4 text-sm text-center">' + decodeURIComponent(req.query.error) + "</div>" : ""}
         <form method="POST" action="/send-otp" class="space-y-4">
@@ -350,7 +350,7 @@ app.post("/submit", (req, res) => {
         return res.redirect("/survey");
     }
 
-    req.session.destroy();
+    delete req.session.authenticatedEmail; delete req.session.pendingEmail;
     res.redirect("/thanks");
 });
 
@@ -499,7 +499,7 @@ app.get("/admin/dashboard", requireAdmin, (req, res) => {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Admin - Club Votaciones</title>
+      <title>Admin - Votaciones</title>
       <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-slate-50 min-h-screen font-sans text-slate-800 pb-12">
@@ -508,7 +508,7 @@ app.get("/admin/dashboard", requireAdmin, (req, res) => {
       <nav class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center sticky top-0 z-10 shadow-sm">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white font-bold">V</div>
-          <span class="font-bold text-lg text-slate-800">Club Votaciones</span>
+          <span class="font-bold text-lg text-slate-800">Votaciones</span>
         </div>
         <a href="/admin/logout" class="text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>

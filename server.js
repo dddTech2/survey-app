@@ -16,7 +16,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS socios (
     email TEXT PRIMARY KEY,
     name TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT (datetime('now', '-5 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS otp_codes (
@@ -24,7 +24,7 @@ db.exec(`
     code TEXT NOT NULL,
     expires_at INTEGER NOT NULL,
     used INTEGER DEFAULT 0,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT (datetime('now', '-5 hours'))
   );
 
   CREATE TABLE IF NOT EXISTS responses (
@@ -32,7 +32,7 @@ db.exec(`
     email TEXT UNIQUE NOT NULL,
     answer1 TEXT NOT NULL,
     answer2 TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME DEFAULT (datetime('now', '-5 hours'))
   );
 `);
 
@@ -143,7 +143,7 @@ app.post("/send-otp", async (req, res) => {
 
     db.prepare("UPDATE otp_codes SET used = 1 WHERE email = ?").run(email);
     db.prepare(
-        "INSERT INTO otp_codes (email, code, expires_at) VALUES (?, ?, ?)",
+        "INSERT INTO otp_codes (email, code, expires_at, created_at) VALUES (?, ?, ?, datetime('now', '-5 hours'))",
     ).run(email, code, expiresAt);
 
     // 4. Enviar email
@@ -344,7 +344,7 @@ app.post("/submit", (req, res) => {
 
     try {
         db.prepare(
-            "INSERT INTO responses (email, answer1, answer2) VALUES (?, ?, ?)",
+            "INSERT INTO responses (email, answer1, answer2, created_at) VALUES (?, ?, ?, datetime('now', '-5 hours'))",
         ).run(email, answer1, answer2);
     } catch (err) {
         return res.redirect("/survey");
@@ -670,7 +670,7 @@ app.post("/admin/socios", requireAdmin, (req, res) => {
     const data = req.body.socios_data || "";
     const lines = data.split("\n");
     const insert = db.prepare(
-        "INSERT OR IGNORE INTO socios (email, name) VALUES (?, ?)",
+        "INSERT OR IGNORE INTO socios (email, name, created_at) VALUES (?, ?, datetime('now', '-5 hours'))",
     );
 
     db.transaction(() => {

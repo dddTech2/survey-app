@@ -481,12 +481,20 @@ app.get("/admin/dashboard", requireAdmin, (req, res) => {
         <div class="font-medium text-slate-800">${s.email}</div>
         ${s.name ? `<div class="text-xs text-slate-500">${s.name}</div>` : '<div class="text-xs text-slate-400">Sin nombre</div>'}
       </td>
-      <td class="py-3 px-4 text-right">
+            <td class="py-3 px-4 text-center">
         ${
             s.has_voted
                 ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>VOTÓ</span>'
                 : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">PENDIENTE</span>'
         }
+      </td>
+      <td class="py-3 px-4 text-right">
+        <form action="/admin/socios/delete" method="POST" onsubmit="return confirm('¿Seguro que quieres eliminar al socio ' + s.email + '?')" class="inline-block">
+          <input type="hidden" name="email" value="${s.email}">
+          <button type="submit" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-md transition-colors" title="Eliminar socio">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>
+        </form>
       </td>
     </tr>
   `,
@@ -647,11 +655,12 @@ app.get("/admin/dashboard", requireAdmin, (req, res) => {
                 <thead class="bg-slate-50 text-slate-500 text-xs uppercase sticky top-0">
                   <tr>
                     <th class="py-3 px-4 font-semibold">Socio</th>
-                    <th class="py-3 px-4 font-semibold text-right">Estado</th>
+                    <th class="py-3 px-4 font-semibold text-center">Estado</th>
+                    <th class="py-3 px-4 font-semibold text-right">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${rows || '<tr><td colspan="2" class="py-8 text-center text-slate-500">No hay socios cargados aún</td></tr>'}
+                  ${rows || '<tr><td colspan="3" class="py-8 text-center text-slate-500">No hay socios cargados aún</td></tr>'}
                 </tbody>
               </table>
             </div>
@@ -695,6 +704,15 @@ app.post("/admin/socios", requireAdmin, (req, res) => {
         }
     })();
 
+    res.redirect("/admin/dashboard");
+});
+
+
+app.post("/admin/socios/delete", requireAdmin, (req, res) => {
+    const email = req.body.email;
+    if (email) {
+        db.prepare("DELETE FROM socios WHERE email = ?").run(email);
+    }
     res.redirect("/admin/dashboard");
 });
 
